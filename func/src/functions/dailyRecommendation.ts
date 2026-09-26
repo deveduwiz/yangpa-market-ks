@@ -1,6 +1,12 @@
 import { app, InvocationContext, Timer } from '@azure/functions';
 import { Sequelize, DataTypes, Model, Op } from 'sequelize';
 import { BrevoClient } from '@getbrevo/brevo';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// 템플릿 파일 로드
+const emailCss = fs.readFileSync(path.join(__dirname, '../templates/email.css'), 'utf-8');
+const emailTemplate = fs.readFileSync(path.join(__dirname, '../templates/email.html'), 'utf-8');
 
 // DB 연결 설정
 const sequelize = new Sequelize({
@@ -155,51 +161,11 @@ function createEmailHtml(
     .map((r) => `<li>${r.productName} - ${r.price.toLocaleString()}원</li>`)
     .join('');
 
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: #7C3AED; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-    .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-    .section { margin-bottom: 20px; }
-    .section h3 { color: #7C3AED; margin-bottom: 10px; }
-    ul { padding-left: 20px; }
-    li { margin-bottom: 8px; }
-    .footer { text-align: center; color: #888; font-size: 12px; margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🧅 양파마켓</h1>
-    </div>
-    <div class="content">
-      <p>안녕하세요, <strong>${userName}</strong>님!</p>
-
-      <div class="section">
-        <h3>❤️ 최근 관심 상품</h3>
-        <ul>${favoritesList}</ul>
-      </div>
-
-      <div class="section">
-        <h3>✨ 오늘의 추천 상품</h3>
-        <ul>${recommendationsList}</ul>
-      </div>
-
-      <p>양파마켓에서 더 많은 상품을 확인해보세요!</p>
-    </div>
-    <div class="footer">
-      <p>본 메일은 양파마켓에서 발송되었습니다.</p>
-      <p>수신을 원하지 않으시면 설정에서 변경해주세요.</p>
-    </div>
-  </div>
-</body>
-</html>
-`;
+  return emailTemplate
+    .replace('{{styles}}', emailCss)
+    .replace('{{userName}}', userName)
+    .replace('{{favoritesList}}', favoritesList)
+    .replace('{{recommendationsList}}', recommendationsList);
 }
 
 // Brevo 클라이언트 초기화

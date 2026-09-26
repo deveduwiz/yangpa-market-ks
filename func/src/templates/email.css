@@ -1,0 +1,49 @@
+body {
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  background: #7C3AED;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+}
+
+.content {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 0 0 8px 8px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.section h3 {
+  color: #7C3AED;
+  margin-bottom: 10px;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 8px;
+}
+
+.footer {
+  text-align: center;
+  color: #888;
+  font-size: 12px;
+  margin-top: 20px;
+}
