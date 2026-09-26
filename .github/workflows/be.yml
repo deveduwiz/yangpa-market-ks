@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - 'be-azure/**'
+      - 'be/**'
       - '.github/workflows/be.yml'
   workflow_dispatch:
 

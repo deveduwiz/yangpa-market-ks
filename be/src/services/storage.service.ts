@@ -13,12 +13,16 @@ const getContainerClient = (): ContainerClient => {
         'AZURE_STORAGE_CONNECTION_STRING 이 설정되지 않았습니다.',
       );
     }
-    const blobServiceClient = BlobServiceClient.fromConnectionString(config.azure.connectionString);
-    containerClient = blobServiceClient.getContainerClient(config.azure.containerName);
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+      config.azure.connectionString,
+    );
+    containerClient = blobServiceClient.getContainerClient(
+      config.azure.containerName,
+    );
   }
   return containerClient;
 };
-
+//
 // Local Storage helpers
 const getLocalFilePath = (filename: string): string => {
   return path.join(process.cwd(), config.storage.localPath, filename);
@@ -38,7 +42,7 @@ export const isAzureStorage = (): boolean => config.storage.type === 'azure';
 export const uploadFile = async (
   buffer: Buffer,
   filename: string,
-  contentType: string
+  contentType: string,
 ): Promise<string> => {
   if (isAzureStorage()) {
     const client = getContainerClient();
