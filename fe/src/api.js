@@ -1,11 +1,10 @@
 // be의 라우터와 1:1로 대응하는 얇은 fetch 래퍼.
-// 백엔드 호스트는 .env 의 VITE_API_BASE_URL 로 관리한다.
-// 비워두면 상대경로로 요청하고, dev에서는 vite 프록시(VITE_PROXY_TARGET)가 받아준다.
+// 백엔드 호스트는 .env 의 VITE_API_BASE_URL 로 관리한다 (BE에서 CORS 허용).
 
 // 끝의 / 는 제거해서 `${BASE}/sales` 처럼 항상 한 번만 붙게 한다.
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
+// 개발 환경에서 환경변수가 없으면 localhost:3000 사용
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 const apiUrl = (path) => `${API_BASE}${path}`;
-console.log('============', apiUrl);
 const TOKEN_KEY = 'yangpa.token';
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
@@ -125,12 +124,16 @@ export const api = {
 // be 가 내려주는 sale.photoUrl 이 blob 공개 URL이고, be 를 거치지 않으므로
 // App Service 대역폭을 쓰지 않고 지연도 짧다.
 //
-// photoUrl 이 없으면(스토리지 설정 누락 등) be 경유 /image/:filename 으로 폴백한다.
+// photoUrl 이 없거나 상대 경로(/image/...)면 be 경유로 폴백한다.
 export const imageUrl = (sale) => {
   if (!sale) return '';
   // 파일명 문자열로 넘어오던 예전 호출도 계속 동작하게 둔다
   if (typeof sale === 'string') return apiUrl(`/image/${encodeURIComponent(sale)}`);
-  if (sale.photoUrl) return sale.photoUrl;
+  if (sale.photoUrl) {
+    // 상대 경로(/image/...)면 백엔드 URL을 붙인다
+    if (sale.photoUrl.startsWith('/')) return apiUrl(sale.photoUrl);
+    return sale.photoUrl;
+  }
   if (sale.photo) return apiUrl(`/image/${encodeURIComponent(sale.photo)}`);
   return '';
 };

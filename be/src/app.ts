@@ -4,19 +4,19 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { sequelize } from './models/index.js';
+import { sequelize, createDatabaseIfNotExists } from './models/index.js';
 import errorHandler from './middleware/errorHandler.js';
 
 import memberRouter from './routes/member.router.js';
 import saleRouter from './routes/sale.router.js';
-import imageRouter from './routes/image.router.js';
+import config from './config/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const swaggerDocument = YAML.load(path.join(__dirname, '../../docs/swagger.yaml'));
+const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -26,7 +26,14 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/members', memberRouter);
 app.use('/sales', saleRouter);
-app.use('/image', imageRouter);
+
+// 로컬 스토리지: 정적 파일 서비스 (Azure는 Blob URL 직접 사용)
+if (config.storage.type === 'local') {
+  app.use('/image', express.static(config.storage.localPath, {
+    maxAge: '1y',
+    immutable: true,
+  }));
+}
 
 app.use(errorHandler);
 
@@ -39,6 +46,7 @@ app.use(errorHandler);
  */
 async function start() {
   try {
+    await createDatabaseIfNotExists();
     await sequelize.sync({ force: false });
 
     // 모델은 등록됐는데 테이블이 없으면 조용히 넘어가지 않고 알려준다.

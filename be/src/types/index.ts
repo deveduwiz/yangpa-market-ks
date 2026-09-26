@@ -36,6 +36,9 @@ export interface SaleView {
   price: number;
   email: string;
   photo: string;
+  /** Blob Storage 공개 URL. 프론트가 be 를 거치지 않고 직접 받는다.
+   *  스토리지 설정이 없으면 null 이고, 이때 프론트는 /image/:filename 으로 폴백한다. */
+  photoUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
   /** 판매자 이름. user 테이블에서 조인해 온다. */

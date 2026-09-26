@@ -10,6 +10,7 @@ interface DbConfig {
   password: string;
   database: string;
   dialect: Dialect;
+  ssl: boolean;
 }
 
 interface JwtConfig {
@@ -21,10 +22,22 @@ interface BcryptConfig {
   saltRounds: number;
 }
 
+interface AzureStorageConfig {
+  connectionString: string;
+  containerName: string;
+}
+
+interface StorageConfig {
+  type: 'local' | 'azure';
+  localPath: string;
+}
+
 interface Config {
   db: DbConfig;
   jwt: JwtConfig;
   bcrypt: BcryptConfig;
+  azure: AzureStorageConfig;
+  storage: StorageConfig;
 }
 
 const config: Config = {
@@ -35,6 +48,7 @@ const config: Config = {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'yangpa',
     dialect: (process.env.DIALECT || 'postgres') as Dialect,
+    ssl: process.env.DB_SSL === 'true',
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'secret',
@@ -42,6 +56,14 @@ const config: Config = {
   },
   bcrypt: {
     saltRounds: parseInt(process.env.SALT_ROUNDS || '10', 10),
+  },
+  azure: {
+    connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || '',
+    containerName: process.env.AZURE_STORAGE_CONTAINER_NAME || 'images',
+  },
+  storage: {
+    type: (process.env.STORAGE_TYPE || 'local') as 'local' | 'azure',
+    localPath: process.env.LOCAL_STORAGE_PATH || 'files',
   },
 };
 
