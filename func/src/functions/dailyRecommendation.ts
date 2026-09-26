@@ -5,8 +5,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // 템플릿 파일 로드
-const emailCss = fs.readFileSync(path.join(__dirname, '../templates/email.css'), 'utf-8');
-const emailTemplate = fs.readFileSync(path.join(__dirname, '../templates/email.html'), 'utf-8');
+const emailCss = fs.readFileSync(
+  path.join(__dirname, '../templates/email.css'),
+  'utf-8',
+);
+const emailTemplate = fs.readFileSync(
+  path.join(__dirname, '../templates/email.html'),
+  'utf-8',
+);
 
 // DB 연결 설정
 const sequelize = new Sequelize({
@@ -35,7 +41,7 @@ User.init(
     email: { type: DataTypes.STRING(50), allowNull: false, unique: true },
     name: { type: DataTypes.STRING(50), allowNull: false },
   },
-  { sequelize, tableName: 'user', timestamps: true, paranoid: true }
+  { sequelize, tableName: 'user', timestamps: true, paranoid: true },
 );
 
 class Favorite extends Model {
@@ -51,7 +57,7 @@ Favorite.init(
     email: { type: DataTypes.STRING(50), allowNull: false },
     saleId: { type: DataTypes.INTEGER, allowNull: false },
   },
-  { sequelize, tableName: 'favorite', timestamps: true, paranoid: false }
+  { sequelize, tableName: 'favorite', timestamps: true, paranoid: false },
 );
 
 class Sale extends Model {
@@ -70,7 +76,7 @@ Sale.init(
     price: { type: DataTypes.INTEGER, allowNull: false },
     photo: { type: DataTypes.STRING(200), allowNull: false },
   },
-  { sequelize, tableName: 'sale', timestamps: true, paranoid: true }
+  { sequelize, tableName: 'sale', timestamps: true, paranoid: true },
 );
 
 // 관계 설정
@@ -95,12 +101,17 @@ async function getRecentFavoriteUsers(): Promise<UserWithFavorites[]> {
     where: {
       createdAt: { [Op.gte]: threeDaysAgo },
     },
-    include: [{ model: Sale, as: 'sale', attributes: ['productName', 'price'] }],
+    include: [
+      { model: Sale, as: 'sale', attributes: ['productName', 'price'] },
+    ],
     raw: false,
   });
 
   // 이메일별로 그룹화
-  const userFavoritesMap = new Map<string, Array<{ productName: string; price: number }>>();
+  const userFavoritesMap = new Map<
+    string,
+    Array<{ productName: string; price: number }>
+  >();
 
   for (const fav of recentFavorites) {
     const email = fav.email;
@@ -116,7 +127,7 @@ async function getRecentFavoriteUsers(): Promise<UserWithFavorites[]> {
       price: sale.price,
     });
   }
-
+  //
   // 사용자 정보 조회
   const emails = Array.from(userFavoritesMap.keys());
   const users = await User.findAll({
@@ -132,7 +143,9 @@ async function getRecentFavoriteUsers(): Promise<UserWithFavorites[]> {
 }
 
 // 추천 상품 조회 (최신 상품 5개)
-async function getRecommendedProducts(): Promise<Array<{ productName: string; price: number; photo: string }>> {
+async function getRecommendedProducts(): Promise<
+  Array<{ productName: string; price: number; photo: string }>
+> {
   const products = await Sale.findAll({
     order: [['createdAt', 'DESC']],
     limit: 5,
@@ -150,7 +163,7 @@ async function getRecommendedProducts(): Promise<Array<{ productName: string; pr
 function createEmailHtml(
   userName: string,
   favorites: Array<{ productName: string; price: number }>,
-  recommendations: Array<{ productName: string; price: number }>
+  recommendations: Array<{ productName: string; price: number }>,
 ): string {
   const favoritesList = favorites
     .slice(0, 3)
@@ -178,7 +191,7 @@ async function sendEmail(
   to: string,
   toName: string,
   subject: string,
-  htmlContent: string
+  htmlContent: string,
 ): Promise<boolean> {
   try {
     await brevoClient.transactionalEmails.sendTransacEmail({
@@ -198,7 +211,10 @@ async function sendEmail(
 }
 
 // 메인 함수
-async function dailyRecommendation(myTimer: Timer, context: InvocationContext): Promise<void> {
+async function dailyRecommendation(
+  myTimer: Timer,
+  context: InvocationContext,
+): Promise<void> {
   context.log('Daily recommendation function started');
 
   try {
@@ -224,12 +240,16 @@ async function dailyRecommendation(myTimer: Timer, context: InvocationContext): 
     let failCount = 0;
 
     for (const user of users) {
-      const htmlContent = createEmailHtml(user.name, user.favorites, recommendations);
+      const htmlContent = createEmailHtml(
+        user.name,
+        user.favorites,
+        recommendations,
+      );
       const success = await sendEmail(
         user.email,
         user.name,
         '🧅 양파마켓 - 오늘의 추천 상품을 확인하세요!',
-        htmlContent
+        htmlContent,
       );
 
       if (success) {
@@ -239,7 +259,9 @@ async function dailyRecommendation(myTimer: Timer, context: InvocationContext): 
       }
     }
 
-    context.log(`Email sending completed. Success: ${successCount}, Failed: ${failCount}`);
+    context.log(
+      `Email sending completed. Success: ${successCount}, Failed: ${failCount}`,
+    );
   } catch (error) {
     context.error('Error in daily recommendation function:', error);
     throw error;
