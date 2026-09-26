@@ -67,5 +67,5 @@ jobs:
         with:
           app-name: 'func-yangpa'
           package: '.'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9D8D06C179FF4DC2BADE65A5F7BDFBAF }}
+          publish-profile: ${{ secrets.FUNCTION_PROFILE }}
           sku: 'flexconsumption'
