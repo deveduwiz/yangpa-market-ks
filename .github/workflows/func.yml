@@ -68,5 +68,5 @@ jobs:
           app-name: 'func-yangpa'
           slot-name: 'Production'
           package: '.'
-          publish-profile: ${{ secrets.secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9D8D06C179FF4DC2BADE65A5F7BDFBAF }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9D8D06C179FF4DC2BADE65A5F7BDFBAF }}
           sku: 'flexconsumption'
