@@ -178,7 +178,7 @@ export const getFavorites = async ({
     limit: size,
     offset,
   });
-
+  //
   // 찜 순서를 유지해야 하므로 id 순서대로 다시 정렬한다
   const ids = rows.map((f) => f.saleId);
   const sales = ids.length
