@@ -1,7 +1,12 @@
 import { Op, WhereOptions } from 'sequelize';
 import { Favorite, Sale, User } from '../models/index.js';
 import { SaleAttributes } from '../models/sale.js';
-import { CreateSaleDto, GetSalesQuery, SaleView, httpError } from '../types/index.js';
+import {
+  CreateSaleDto,
+  GetSalesQuery,
+  SaleView,
+  httpError,
+} from '../types/index.js';
 import { getFileUrl } from './storage.service.js';
 
 interface SaleListResult {
@@ -17,9 +22,11 @@ interface SaleListResult {
 const toView = (
   sale: Sale,
   favoritedIds: Set<number>,
-  favoriteCounts: Map<number, number>
+  favoriteCounts: Map<number, number>,
 ): SaleView => {
-  const plain = sale.get({ plain: true }) as SaleAttributes & { User?: { name: string } };
+  const plain = sale.get({ plain: true }) as SaleAttributes & {
+    User?: { name: string };
+  };
   return {
     id: plain.id,
     productName: plain.productName,
@@ -41,21 +48,31 @@ const toView = (
  * 목록 쿼리에 favorite 을 조인하면 limit 과 엉키기 때문에,
  * 페이지에 실제로 담긴 id 들만 모아 두 번의 가벼운 쿼리로 해결한다.
  */
-const attachFavorites = async (sales: Sale[], viewerEmail?: string): Promise<SaleView[]> => {
+const attachFavorites = async (
+  sales: Sale[],
+  viewerEmail?: string,
+): Promise<SaleView[]> => {
   if (sales.length === 0) return [];
 
   const ids = sales.map((s) => s.id);
 
   const [mine, all] = await Promise.all([
     viewerEmail
-      ? Favorite.findAll({ where: { email: viewerEmail, saleId: { [Op.in]: ids } } })
+      ? Favorite.findAll({
+          where: { email: viewerEmail, saleId: { [Op.in]: ids } },
+        })
       : Promise.resolve([] as Favorite[]),
-    Favorite.findAll({ where: { saleId: { [Op.in]: ids } }, attributes: ['saleId'] }),
+    Favorite.findAll({
+      where: { saleId: { [Op.in]: ids } },
+      attributes: ['saleId'],
+    }),
   ]);
 
   const favoritedIds = new Set(mine.map((f) => f.saleId));
   const favoriteCounts = new Map<number, number>();
-  all.forEach((f) => favoriteCounts.set(f.saleId, (favoriteCounts.get(f.saleId) ?? 0) + 1));
+  all.forEach((f) =>
+    favoriteCounts.set(f.saleId, (favoriteCounts.get(f.saleId) ?? 0) + 1),
+  );
 
   return sales.map((s) => toView(s, favoritedIds, favoriteCounts));
 };
@@ -101,7 +118,10 @@ export const getSales = async ({
  * 단건 조회. 기존 클라이언트(fe)가 배열을 기대하므로 배열로 돌려준다.
  * (컨트롤러에서 documents 로 그대로 내보낸다)
  */
-export const getSaleById = async (id: number, viewerEmail?: string): Promise<SaleView[]> => {
+export const getSaleById = async (
+  id: number,
+  viewerEmail?: string,
+): Promise<SaleView[]> => {
   const sales = await Sale.findAll({ where: { id }, include: sellerInclude });
   return attachFavorites(sales, viewerEmail);
 };
@@ -110,7 +130,8 @@ export const getSaleById = async (id: number, viewerEmail?: string): Promise<Sal
 export const deleteSale = async (id: number, email: string): Promise<void> => {
   const sale = await Sale.findByPk(id);
   if (!sale) throw httpError('상품을 찾을 수 없습니다.', 404);
-  if (sale.email !== email) throw httpError('본인이 등록한 상품만 삭제할 수 있습니다.', 403);
+  if (sale.email !== email)
+    throw httpError('본인이 등록한 상품만 삭제할 수 있습니다.', 403);
 
   // 상품이 사라지면 그 상품을 가리키던 찜도 의미가 없다
   await Favorite.destroy({ where: { saleId: id } });
@@ -118,16 +139,25 @@ export const deleteSale = async (id: number, email: string): Promise<void> => {
 };
 
 /** 찜 추가. 이미 찜한 상태에서 또 눌러도 에러가 아니다(멱등). */
-export const addFavorite = async (saleId: number, email: string): Promise<number> => {
+export const addFavorite = async (
+  saleId: number,
+  email: string,
+): Promise<number> => {
   const sale = await Sale.findByPk(saleId);
   if (!sale) throw httpError('상품을 찾을 수 없습니다.', 404);
 
-  await Favorite.findOrCreate({ where: { email, saleId }, defaults: { email, saleId } });
+  await Favorite.findOrCreate({
+    where: { email, saleId },
+    defaults: { email, saleId },
+  });
   return Favorite.count({ where: { saleId } });
 };
 
 /** 찜 해제. 없던 것을 지워도 에러가 아니다(멱등). */
-export const removeFavorite = async (saleId: number, email: string): Promise<number> => {
+export const removeFavorite = async (
+  saleId: number,
+  email: string,
+): Promise<number> => {
   await Favorite.destroy({ where: { email, saleId } });
   return Favorite.count({ where: { saleId } });
 };
@@ -152,10 +182,15 @@ export const getFavorites = async ({
   // 찜 순서를 유지해야 하므로 id 순서대로 다시 정렬한다
   const ids = rows.map((f) => f.saleId);
   const sales = ids.length
-    ? await Sale.findAll({ where: { id: { [Op.in]: ids } }, include: sellerInclude })
+    ? await Sale.findAll({
+        where: { id: { [Op.in]: ids } },
+        include: sellerInclude,
+      })
     : [];
   const byId = new Map(sales.map((s) => [s.id, s]));
-  const ordered = ids.map((id) => byId.get(id)).filter((s): s is Sale => Boolean(s));
+  const ordered = ids
+    .map((id) => byId.get(id))
+    .filter((s): s is Sale => Boolean(s));
 
   return {
     documents: await attachFavorites(ordered, viewerEmail),
