@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - yangpa-be
+name: Yangpa Market Backend - Azure Web App - yangpa-be
 
 on:
   push:
@@ -59,4 +59,4 @@ jobs:
           app-name: 'yangpa-be'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.BE_PROFILE }}
+          publish-profile: ${{ secrets.YANGPA_BE_PROFILE }}
