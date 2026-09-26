@@ -2,7 +2,7 @@
   "name": "yangpa-market-functions",
   "version": "1.0.0",
   "description": "Azure Functions for Yangpa Market",
-  "main": "dist/src/functions/*.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
