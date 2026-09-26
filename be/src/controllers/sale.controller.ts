@@ -17,7 +17,9 @@ export const createSale = async (req: Request, res: Response, next: NextFunction
 
     const { productName, description, price } = req.body;
     const email = req.email!;
-    const photo = req.file.filename;
+    // Azure: blobName, Local: filename
+    const file = req.file as Express.Multer.File & { blobName?: string };
+    const photo = file.blobName ?? file.filename;
 
     const sale = await saleService.createSale({
       productName,
